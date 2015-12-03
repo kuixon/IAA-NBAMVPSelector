@@ -4,43 +4,56 @@ clc
 
 minResMVP = 55;
 jug_ent = dlmread('jugadoresEntrenamiento.txt',' ',1,0);
-val_jug_can = dlmread('jugadoresCandidatosValores.txt',',',1,0);
+val_jug_can = dlmread('jugadoresCandidatosValores.txt',' ',1,0);
+nom_jug = readtable('jugadoresCandidatosNombres.txt','Format','%s');
+jug_ent_rel = zeros(size(jug_ent,1),6);
+
+for i = 1 : size(jug_ent_rel,1)
+    for j = 1 : 6
+        if j < 5
+            jug_ent_rel(i,j) = jug_ent(i,j)/jug_ent(i,j+4);
+        elseif j == 5
+            jug_ent_rel(i,j) = jug_ent(i,j + 4);
+        elseif j == 6
+            jug_ent_rel(i,j) = jug_ent(i,end);
+        end
+    end
+end
+
+jug_ent_rel
+
 %nombres_jugadores_candidatos = textread('jugadoresCandidatosNombres.txt','%s','\n','');
 index = 0;
 for i = 1 : size(val_jug_can,1)
-    if seleccionarFavoritosMVP(val_jug_can(i,1),val_jug_can(i,2),val_jug_can(i,3),val_jug_can(i,4),val_jug_can(i,5)) > minResMVP
+    if seleccionarFavoritosMVP(val_jug_can(i,1),val_jug_can(i,2),val_jug_can(i,3),val_jug_can(i,4),val_jug_can(i,end)) > minResMVP
         index = index + 1;
     end
 end
 
-favoritos_mvp = zeros(index,5);
+favoritos_mvp = zeros(index,9);
 index = 1;
 for i = 1 : size(val_jug_can,1)
-    if seleccionarFavoritosMVP(val_jug_can(i,1),val_jug_can(i,2),val_jug_can(i,3),val_jug_can(i,4),val_jug_can(i,5)) > minResMVP
+    if seleccionarFavoritosMVP(val_jug_can(i,1),val_jug_can(i,2),val_jug_can(i,3),val_jug_can(i,4),val_jug_can(i,end)) > minResMVP
         favoritos_mvp(index,:) = val_jug_can(i,:);
         index = index + 1;
     end
 end
-%Jugadores obtenidos despues de la preselección con lógica difusa.
-favoritos_mvp
+favoritos_mvp_rel = zeros(size(favoritos_mvp,1),5);
 
-minPuntos = min(jug_ent(:,1));
-maxPuntos = max(jug_ent(:,1));
-fprintf('\nPuntos: Maximo: %d - Minimo: %d', maxPuntos, minPuntos);
+for i = 1 : size(favoritos_mvp_rel,1)
+    for j = 1 : 5
+        if j < 5
+            favoritos_mvp_rel(i,j) = favoritos_mvp(i,j)/favoritos_mvp(i,j+4);
+        elseif j == 5
+            favoritos_mvp_rel(i,j) = favoritos_mvp(i,end);
+        end
+    end
+end
 
-minRebotes = min(jug_ent(:,2));
-maxRebotes = max(jug_ent(:,2));
-fprintf('\nRebotes: Maximo: %d - Minimo: %d', maxRebotes, minRebotes);
-
-minAsistencias = min(jug_ent(:,3));
-maxAsistencias = max(jug_ent(:,3));
-fprintf('\nAsistencias: Maximo: %d - Minimo: %d', maxAsistencias, minAsistencias);
-
-minTC = min(jug_ent(:,4));
-maxTC = max(jug_ent(:,4));
-fprintf('\nTC: Maximo: %d - Minimo: %d', maxTC, minTC);
-
-fprintf('\nPosicion Equipo: Maximo: %d - Minimo: %d', 15, 1);
+favoritos_mvp_rel
+res = seleccionarMVP(favoritos_mvp_rel,jug_ent_rel);
+fprintf('\nIndex: %i',res(1,2))
+fprintf('\nCon una probabilidad de %f el MVP es: %s', res(1,1), 'JugadorA')
 
 end
 
@@ -179,6 +192,8 @@ end
 
 % INICIO - APARTADO RAZONAMIENTO PROBABILÍSTICO
 function resultado2 = seleccionarMVP(datos_test, datos_entrenamiento)
+probMasAltaMVP = 0;
+index = 0;
 for dato = 1 : size(datos_test,1)
     % Obtenemos el dato de una fila
     dato_prueba = datos_test(dato,:);
@@ -200,65 +215,23 @@ for dato = 1 : size(datos_test,1)
     % En la primera vuelta obtiene todos los datos con estimacion 0
     % En la segunda vuelta obtiene todos los datos con estimacion 1
     for est = 1:numel(Estimaciones)
-        tabla = datos_entrenamiento(datos_entrenamiento(:,end)==Estimaciones(est),:);
-        %% Calcular Probabilidades(est) <-------****
-        %  Probabilidades(est) = P(ultimacolumna=Estimaciones(est))
-        Probabilidades(est) = (size(tabla,1) + 1/2) / (size(datos_entrenamiento,1) + 1);
-        
-        % Se crea un vector para almacenar los resultados para cada una de
-        % las columnas
-        numProbabilities = zeros(1, size(datos_entrenamiento, 2) - 1);
-        
-        % Se recorren cada una de las columnas
-        for i = 1: size(datos_entrenamiento, 2) - 1
-            vector = [];
-            if i == 1
-                vector = GROUP_AGES;
-            elseif i == 2
-                vector = GROUP_YEARS;
-            elseif i == 3
-                vector = GROUP_POSITIVES;
-            end
-            
-            % Se obtiene el grupo al que pertenece el valor de la columna
-            group = [];
-            for x = 1: size(vector, 2)
-                if size(vector(vector(:,x) == dato_prueba(i),:)) > 0
-                    group = vector(vector(:,x) == dato_prueba(i),:);
-                    break
-                end
-            end
-            
-            % Se comprueba el numero de filas que pertenecen al grupo del
-            % dato de prueba
-            numFilasCumplen = 0;
-            for x = 1 : size(vector, 2)
-                numFilasCumplen = numFilasCumplen + size(tabla(tabla(:,i) == group(x),:),1);
-            end
-            
-            % Calculamos la probabilidad
-            numProbabilities(i) = ((numFilasCumplen + (1 / size(vector, 1))) / (size(tabla, 1) + 1));             
-        end
-        
-        % Se suman las probabilidades de cada una de las columnas
-        for i = 1: size(datos_entrenamiento, 2) - 1
-            Probabilidades(est) = Probabilidades(est) * numProbabilities(i);
-        end
-                
-    end
-    
-    for est = 1:numel(Estimaciones)
-        fprintf('\tEstimación de %d: ',Estimaciones(est))
-        fprintf('%.8f\t%.2f\n',Probabilidades(est),Probabilidades(est)/sum(Probabilidades));
-        if Probabilidades(est)==max(Probabilidades)
-            estimacion_ganadora = Estimaciones(est);
+        for j = 1 : size(datos_entrenamiento,2)-1
+            media = mean(datos_entrenamiento((datos_entrenamiento(:,end)==Estimaciones(est)),j));
+            desv = std(datos_entrenamiento((datos_entrenamiento(:,end)==Estimaciones(est)),j));
+
+            Probabilidades(est) = Probabilidades(est) * gaussmf(dato_prueba(j),[desv media]);
         end
     end
-    fprintf('\t\tEstimación Obtenida/Esperada: %d %d\n',estimacion_ganadora,dato_prueba(end))
-    if estimacion_ganadora == dato_prueba(end)
-        aciertos = aciertos+1;
-    end  
+    resultado = Probabilidades(2)*100/(Probabilidades(1)+Probabilidades(2));
+    if probMasAltaMVP < resultado
+        probMasAltaMVP = resultado;
+        index = dato;
+    end
 end
+res = zeros(1,2);
+res(1,1) = probMasAltaMVP;
+res(1,2) = index;
+resultado2 = res;
 end
 % FIN - APARTADO RAZONAMIENTO PROBABILÍSTICO
 
