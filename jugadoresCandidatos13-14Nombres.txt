@@ -1,0 +1,9 @@
+Id,Nombre
+1,Kevin Durant
+2,Lebron James
+3,Paul George
+4,Carmelo Anthony
+5,Kevin Love
+6,James Harden
+7,Blake Grifin
+8,Stephen Curry

@@ -4,8 +4,9 @@ clc
 
 minResMVP = 55;
 jug_ent = dlmread('jugadoresEntrenamiento.txt',' ',1,0);
-val_jug_can = dlmread('jugadoresCandidatosValores.txt',' ',1,0);
-nom_jug = readtable('jugadoresCandidatosNombres.txt','Format','%s');
+val_jug_can = dlmread('jugadoresCandidatos12-13Valores.txt',' ',1,0);
+nom_jug = readtable('jugadoresCandidatos12-13Nombres.txt');
+nom_jug_cell = table2cell(nom_jug);
 jug_ent_rel = zeros(size(jug_ent,1),6);
 
 for i = 1 : size(jug_ent_rel,1)
@@ -22,7 +23,6 @@ end
 
 jug_ent_rel
 
-%nombres_jugadores_candidatos = textread('jugadoresCandidatosNombres.txt','%s','\n','');
 index = 0;
 for i = 1 : size(val_jug_can,1)
     if seleccionarFavoritosMVP(val_jug_can(i,1),val_jug_can(i,2),val_jug_can(i,3),val_jug_can(i,4),val_jug_can(i,end)) > minResMVP
@@ -30,30 +30,39 @@ for i = 1 : size(val_jug_can,1)
     end
 end
 
-favoritos_mvp = zeros(index,9);
+favoritos_mvp = zeros(index,size(val_jug_can,2));
 index = 1;
 for i = 1 : size(val_jug_can,1)
-    if seleccionarFavoritosMVP(val_jug_can(i,1),val_jug_can(i,2),val_jug_can(i,3),val_jug_can(i,4),val_jug_can(i,end)) > minResMVP
+    if seleccionarFavoritosMVP(val_jug_can(i,1),val_jug_can(i,2),val_jug_can(i,3),val_jug_can(i,4),val_jug_can(i,end-1)) > minResMVP
         favoritos_mvp(index,:) = val_jug_can(i,:);
         index = index + 1;
     end
 end
-favoritos_mvp_rel = zeros(size(favoritos_mvp,1),5);
+
+favoritos_mvp
+
+favoritos_mvp_rel = zeros(size(favoritos_mvp,1),6);
 
 for i = 1 : size(favoritos_mvp_rel,1)
-    for j = 1 : 5
+    for j = 1 : 6
         if j < 5
             favoritos_mvp_rel(i,j) = favoritos_mvp(i,j)/favoritos_mvp(i,j+4);
         elseif j == 5
+            favoritos_mvp_rel(i,j) = favoritos_mvp(i,end - 1);
+        elseif j == 6
             favoritos_mvp_rel(i,j) = favoritos_mvp(i,end);
         end
     end
 end
 
 favoritos_mvp_rel
+
 res = seleccionarMVP(favoritos_mvp_rel,jug_ent_rel);
-fprintf('\nIndex: %i',res(1,2))
-fprintf('\nCon una probabilidad de %f el MVP es: %s', res(1,1), 'JugadorA')
+
+fprintf('\nCon una probabilidad del %f el MVP es:', res(1,1))
+nom_jug_cell(res(1,3),end)
+
+fprintf('\nLa probabilidad del MVP respecto a los candidatos es: %f', (res(1,1) * 100) / res(1,2))
 
 end
 
@@ -193,16 +202,18 @@ end
 % INICIO - APARTADO RAZONAMIENTO PROBABILÍSTICO
 function resultado2 = seleccionarMVP(datos_test, datos_entrenamiento)
 probMasAltaMVP = 0;
-index = 0;
+idMVP = 0;
+sumProbabilidades = 0;
 for dato = 1 : size(datos_test,1)
     % Obtenemos el dato de una fila
     dato_prueba = datos_test(dato,:);
     % Se muestra el numero de fila
-    fprintf('\nDato de Prueba %d: ',dato);
+    fprintf('\nDATO DE PRUEBA %d: ',dato);
     % Se muestran todas las columnas de la fila
     for j=1:size(datos_test,2)
         fprintf('%d ',dato_prueba(j))
     end
+    fprintf('\n')
     fprintf('\n')
     % Se obtienen las estimaciones posibles sin repetir de la ultima
     % columna
@@ -215,22 +226,37 @@ for dato = 1 : size(datos_test,1)
     % En la primera vuelta obtiene todos los datos con estimacion 0
     % En la segunda vuelta obtiene todos los datos con estimacion 1
     for est = 1:numel(Estimaciones)
+        fprintf('Estimacion %i\n',Estimaciones(est))
+        tabla = datos_entrenamiento(datos_entrenamiento(:,end)==Estimaciones(est),:);
+        Probabilidades(est) = size(tabla,1) / size(datos_entrenamiento,1);
+        fprintf('\nProbabilidad de %i: %f\n',Estimaciones(est),Probabilidades(est))
         for j = 1 : size(datos_entrenamiento,2)-1
-            media = mean(datos_entrenamiento((datos_entrenamiento(:,end)==Estimaciones(est)),j));
-            desv = std(datos_entrenamiento((datos_entrenamiento(:,end)==Estimaciones(est)),j));
-
+            media = mean(tabla(:,j));
+            desv = std(tabla(:,j));
+            fprintf('\nMedia para la columna %i: %f',j,media)
+            fprintf('\nDesviacion para la columna %i: %f',j,desv)
+            fprintf('\nPROBABILIDAD para la columna %i: %f',j,gaussmf(dato_prueba(j),[desv media]))
+            fprintf('\n')
+            fprintf('\n')
             Probabilidades(est) = Probabilidades(est) * gaussmf(dato_prueba(j),[desv media]);
         end
     end
+    fprintf('\nProbabilidades:')
+    fprintf('\nProbabilidad de que el dato de prueba %i NO sea MVP: %f', dato, ((Probabilidades(1)*100)/(Probabilidades(1)+Probabilidades(2))))
+    fprintf('\nProbabilidad de que el dato de prueba %i SI sea MVP: %f\n', dato, ((Probabilidades(2)*100)/(Probabilidades(1)+Probabilidades(2))))
     resultado = Probabilidades(2)*100/(Probabilidades(1)+Probabilidades(2));
+    
+    sumProbabilidades = sumProbabilidades + resultado;
+    
     if probMasAltaMVP < resultado
         probMasAltaMVP = resultado;
-        index = dato;
+        idMVP = dato_prueba(end);
     end
 end
-res = zeros(1,2);
+res = zeros(1,3);
 res(1,1) = probMasAltaMVP;
-res(1,2) = index;
+res(1,2) = sumProbabilidades;
+res(1,3) = idMVP;
 resultado2 = res;
 end
 % FIN - APARTADO RAZONAMIENTO PROBABILÍSTICO

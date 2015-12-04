@@ -1,0 +1,9 @@
+Id,Nombre
+1,Lebron James
+2,Kevin Durant
+3,Carmelo Anthony
+4,Kobe Bryant
+5,James Harden
+6,Russell Westbrook
+7,Stephen Curry
+8,Kyrie Irving
