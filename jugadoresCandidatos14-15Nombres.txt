@@ -7,10 +7,3 @@ Id,Nombre
 6,Anthony Davis
 7,Carmelo Anthony
 8,Demarcus Cousins
-9,Lamarcus Aldridge
-10,Kobe Bryant
-11,Blake Griffin
-12,Kyrie 
-13,Klay Thompson
-14,Dwyane Wade
-15,Chris Bosh

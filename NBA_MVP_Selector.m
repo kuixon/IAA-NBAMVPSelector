@@ -4,8 +4,8 @@ clc
 
 minResMVP = 55;
 jug_ent = dlmread('jugadoresEntrenamiento.txt',' ',1,0);
-val_jug_can = dlmread('jugadoresCandidatos14-15Valores.txt',' ',1,0);
-nom_jug = readtable('jugadoresCandidatos14-15Nombres.txt');
+val_jug_can = dlmread('jugadoresCandidatos11-12Valores.txt',' ',1,0);
+nom_jug = readtable('jugadoresCandidatos11-12Nombres.txt');
 nom_jug_cell = table2cell(nom_jug);
 jug_ent_rel = zeros(size(jug_ent,1),6);
 
