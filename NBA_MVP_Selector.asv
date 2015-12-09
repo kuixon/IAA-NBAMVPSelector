@@ -4,8 +4,8 @@ clc
 
 minResMVP = 55;
 jug_ent = dlmread('jugadoresEntrenamiento.txt',' ',1,0);
-val_jug_can = dlmread('jugadoresCandidatos13-14Valores.txt',' ',1,0);
-nom_jug = readtable('jugadoresCandidatos13-14Nombres.txt');
+val_jug_can = dlmread('jugadoresCandidatos14-15Valores.txt',' ',1,0);
+nom_jug = readtable('jugadoresCandidatos14-15Nombres.txt');
 nom_jug_cell = table2cell(nom_jug);
 jug_ent_rel = zeros(size(jug_ent,1),6);
 
@@ -60,11 +60,9 @@ favoritos_mvp_rel
 res = sortrows(seleccionarMVP(favoritos_mvp_rel,jug_ent_rel),1);
 
 for i = 1 : size(res,1)
-    fprintf('\n%s tiene una probabilidad de ser MVP del %f%%', cell2mat(nom_jug_cell(res(i,2),2)), res(i,1))
+    fprintf('%s tiene una probabilidad de ser MVP del %f%%', cell2mat(nom_jug_cell(res(i,2))))
 end
-fprintf('\n')
-fprintf('\nPor lo tanto, el MVP es: %s\n', cell2mat(nom_jug_cell(res(i,2),2)))
-
+    
 end
 
 %INICIO - APARTADO LÓGICA DIFUSA
