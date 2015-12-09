@@ -4,8 +4,8 @@ clc
 
 minResMVP = 55;
 jug_ent = dlmread('jugadoresEntrenamiento.txt',' ',1,0);
-val_jug_can = dlmread('jugadoresCandidatos11-12Valores.txt',' ',1,0);
-nom_jug = readtable('jugadoresCandidatos11-12Nombres.txt');
+val_jug_can = dlmread('jugadoresCandidatos13-14Valores.txt',' ',1,0);
+nom_jug = readtable('jugadoresCandidatos13-14Nombres.txt');
 nom_jug_cell = table2cell(nom_jug);
 jug_ent_rel = zeros(size(jug_ent,1),6);
 
@@ -57,12 +57,13 @@ end
 
 favoritos_mvp_rel
 
-res = seleccionarMVP(favoritos_mvp_rel,jug_ent_rel);
+res = sortrows(seleccionarMVP(favoritos_mvp_rel,jug_ent_rel),1);
 
-fprintf('\nCon una probabilidad del %f el MVP es:', res(1,1))
-nom_jug_cell(res(1,3),end)
-
-fprintf('\nLa probabilidad del MVP respecto a los candidatos es: %f', (res(1,1) * 100) / res(1,2))
+for i = 1 : size(res,1)
+    fprintf('\n%s tiene una probabilidad de ser MVP del %f%%', cell2mat(nom_jug_cell(res(i,2),2)), res(i,1))
+end
+fprintf('\n')
+fprintf('\nPor lo tanto, el MVP es: %s\n', cell2mat(nom_jug_cell(res(i,2),2)))
 
 end
 
@@ -201,9 +202,7 @@ end
 
 % INICIO - APARTADO RAZONAMIENTO PROBABILÍSTICO
 function resultado2 = seleccionarMVP(datos_test, datos_entrenamiento)
-probMasAltaMVP = 0;
-idMVP = 0;
-sumProbabilidades = 0;
+res = zeros(size(datos_test,1),2);
 for dato = 1 : size(datos_test,1)
     % Obtenemos el dato de una fila
     dato_prueba = datos_test(dato,:);
@@ -244,19 +243,9 @@ for dato = 1 : size(datos_test,1)
     fprintf('\nProbabilidades:')
     fprintf('\nProbabilidad de que el dato de prueba %i NO sea MVP: %f', dato, ((Probabilidades(1)*100)/(Probabilidades(1)+Probabilidades(2))))
     fprintf('\nProbabilidad de que el dato de prueba %i SI sea MVP: %f\n', dato, ((Probabilidades(2)*100)/(Probabilidades(1)+Probabilidades(2))))
-    resultado = Probabilidades(2)*100/(Probabilidades(1)+Probabilidades(2));
-    
-    sumProbabilidades = sumProbabilidades + resultado;
-    
-    if probMasAltaMVP < resultado
-        probMasAltaMVP = resultado;
-        idMVP = dato_prueba(end);
-    end
+    res(dato,1) = Probabilidades(2)*100/(Probabilidades(1)+Probabilidades(2));
+    res(dato,2) = dato_prueba(end);
 end
-res = zeros(1,3);
-res(1,1) = probMasAltaMVP;
-res(1,2) = sumProbabilidades;
-res(1,3) = idMVP;
 resultado2 = res;
 end
 % FIN - APARTADO RAZONAMIENTO PROBABILÍSTICO
