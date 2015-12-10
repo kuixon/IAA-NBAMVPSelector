@@ -58,9 +58,10 @@ end
 favoritos_mvp_rel
 
 res = sortrows(seleccionarMVP(favoritos_mvp_rel,jug_ent_rel),1);
+sumProb = sum(res(:,1),1);
 
 for i = 1 : size(res,1)
-    fprintf('\n%s tiene una probabilidad de ser MVP del %f%%', cell2mat(nom_jug_cell(res(i,2),2)), res(i,1))
+    fprintf('\n%s tiene una probabilidad de ser MVP del %f%%', cell2mat(nom_jug_cell(res(i,2),2)), ((res(i,1) * 100) / sumProb))
 end
 fprintf('\n')
 fprintf('\nPor lo tanto, el MVP es: %s\n', cell2mat(nom_jug_cell(res(i,2),2)))
