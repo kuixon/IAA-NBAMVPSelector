@@ -7,3 +7,15 @@ Id,Nombre
 6,Anthony Davis
 7,Carmelo Anthony
 8,Demarcus Cousins
+9,Lamarcus Aldridge
+10,Kobe Bryant
+11,Blake Griffin
+12,Kyrie Irving
+13,Klay Thompson
+14,Dwyane Wade
+15,Chris Bosh
+16,Rudy Gay
+17,Damian Lillard
+18,Demar DeRozan
+19,Jimmy Butler
+20,Kevin Martin
